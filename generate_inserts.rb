@@ -1,4 +1,5 @@
-require 'csv'    
+require 'csv'
+require 'securerandom'
 
 csv = CSV.parse(File.read('movies.csv'), headers: true)
 
@@ -52,11 +53,12 @@ csv.each do |row|
   puts "INSERT INTO dim_keywords VALUES (#{row_number});"
 
   # inserindo cada keyword separadamente
-  plot_keywords.each_with_index do |keyword, index|
-    puts "INSERT INTO dim_keyword VALUES (#{row_number + index}, '#{keyword}');"
+  plot_keywords.each do |keyword|
+    random_id = SecureRandom.random_number(999999)
+    puts "INSERT INTO dim_keyword VALUES (#{random_id}, '#{keyword}');"
     
     # bridge_keywords
-    puts "INSERT INTO bridge_keywords VALUES (#{row_number}, #{row_number + index});"
+    puts "INSERT INTO bridge_keywords VALUES (#{row_number}, #{random_id});"
   end
 
   # fato
