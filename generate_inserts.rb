@@ -97,7 +97,7 @@ csv.each do |row|
   plot_keywords.each do |keyword|
     keyword_hash = { id: index, content: keyword }
 
-    next if distinct_keywords.include?(keyword_hash)
+    next unless distinct_keywords.select { |k| k[:content] == keyword_hash[:content] }.empty?
 
     random_id = SecureRandom.random_number(999999)
 
