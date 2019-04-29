@@ -21,15 +21,15 @@ csv.each do |row|
   duration = columns[4]
   director_facebook_likes = columns[5]
   actor_3_facebook_likes = columns[6]
-  actor_2_name = columns[7]
+  actor_2_name = columns[7].gsub("'", "`")
   actor_1_facebook_likes = columns[8]
   gross = columns[9]
   genre = columns[10].split('|').first
-  actor_1_name = columns[11]
+  actor_1_name = columns[11].gsub("'", "`")
   movie_title = columns[12].gsub("'", "`")
   num_voted_users = columns[13]
   cast_total_facebook_likes = columns[14]
-  actor_3_name = columns[15]
+  actor_3_name = columns[15].gsub("'", "`")
   plot_keywords = columns[16].split('|')
   num_user_for_reviews = columns[17]
   language = columns[18]
@@ -42,7 +42,7 @@ csv.each do |row|
   movie_facebook_likes = columns[25].split(' ').first
 
   movie = { id: index, content: movie_title }
-  unless distinct_movie_titles.select { |h| h[:content] == movie[:content] }.empty? || index == 0
+  if index == 0 || distinct_movie_titles.select { |h| h[:content] == movie[:content] }.empty?
     puts "INSERT INTO dim_movie VALUES (#{index}, '#{movie_title}', #{duration}, '#{color}', '#{content_rating}');"
     distinct_movie_titles.push(movie)
   end
@@ -50,21 +50,21 @@ csv.each do |row|
   puts "INSERT INTO dim_cast VALUES (#{index});"
   
   actor_1 = { id: index, content: actor_1_name }
-  unless distinct_actor_names.select { |h| h[:content] == actor_1[:content] }.empty? || index == 0
+  if index == 0 || distinct_actor_names.select { |h| h[:content] == actor_1[:content] }.empty?
     puts "INSERT INTO dim_actor VALUES (#{index}, #{actor_1_facebook_likes}, '#{actor_1_name}');"
     puts "INSERT INTO bridge_cast VALUES (#{index}, #{index});"
     distinct_actor_names.push(actor_1)
   end
   
   actor_2 = { id: index + 1, content: actor_2_name }
-  unless distinct_actor_names.select { |h| h[:content] == actor_2[:content] }.empty? || index == 0
+  if index == 0 || distinct_actor_names.select { |h| h[:content] == actor_2[:content] }.empty?
     puts "INSERT INTO dim_actor VALUES (#{index + 1}, #{actor_2_facebook_likes}, '#{actor_2_name}');"
     puts "INSERT INTO bridge_cast VALUES (#{index}, #{index + 1});"
     distinct_actor_names.push(actor_2)
   end
   
   actor_3 = { id: index + 2, content: actor_3_name }
-  unless distinct_actor_names.select { |h| h[:content] == actor_3[:content] }.empty? || index == 0
+  if index == 0 || distinct_actor_names.select { |h| h[:content] == actor_3[:content] }.empty?
     puts "INSERT INTO dim_actor VALUES (#{index + 2}, #{actor_3_facebook_likes}, '#{actor_3_name}');"
     puts "INSERT INTO bridge_cast VALUES (#{index}, #{index + 2});"
     distinct_actor_names.push(actor_3)
@@ -73,19 +73,19 @@ csv.each do |row|
   puts "INSERT INTO dim_year VALUES (#{index}, #{title_year});"
 
   country_hash = { id: index, content: country }
-  unless distinct_country_names.select { |h| h[:content] == country_hash[:content] }.empty? || index == 0
+  if index == 0 || !distinct_country_names.select { |h| h[:content] == country_hash[:content] }.empty?
     puts "INSERT INTO dim_country VALUES (#{index}, '#{country}', '#{language}');"
     distinct_country_names.push(country_hash)
   end
 
   genre_hash = { id: index, content: genre }
-  unless distinct_genres.select { |h| h[:content] == genre_hash[:content] }.empty? || index == 0
+  if index == 0 || !distinct_genres.select { |h| h[:content] == genre_hash[:content] }.empty?
     puts "INSERT INTO dim_genre VALUES (#{index}, '#{genre}');"
     distinct_genres.push(genre_hash)
   end
 
   director = { id: index, content: director_name }
-  unless distinct_director_names.select { |h| h[:content] == director[:content] }.empty? || index == 0
+  if index == 0 || !distinct_director_names.select { |h| h[:content] == director[:content] }.empty?
     puts "INSERT INTO dim_director VALUES (#{index}, '#{director_name}', #{director_facebook_likes});"
     distinct_director_names.push(director)
   end
@@ -97,7 +97,7 @@ csv.each do |row|
   plot_keywords.each do |keyword|
     keyword_hash = { id: index, content: keyword }
 
-    next if distinct_keywords.include?(keyword_hash)
+    next if !distinct_keywords.include?(keyword_hash)
 
     random_id = SecureRandom.random_number(999999)
 
@@ -107,14 +107,17 @@ csv.each do |row|
     distinct_keywords.push(keyword_hash)
   end
 
+  movie_id = movie[:id]
+  country_id = country_hash[:id]
+  genre_id = genre_hash[:id]
+  director_id = director[:id]
+
   unless index == 0
-    movie_id = movie[:id]
-    country_id = country_hash[:id]
-    genre_id = genre_hash[:id]
-    director_id = director[:id]
+    movie_id = distinct_movie_titles.select { movie[:content] }.first[:id]
+    country_id = distinct_country_names.select { country_hash[:content] }.first[:id]
+    genre_id = distinct_genres.select { genre_hash[:content] }.first[:id]
+    director_id = distinct_director_names.select { director[:content] }.first[:id]
   end
 
   puts "INSERT INTO fato VALUES (#{index}, #{budget}, #{gross}, #{gross.to_i - budget.to_i}, #{movie_id}, #{index}, #{index}, #{country_id}, #{genre_id}, #{index}, #{index}, #{director_id}, #{index});"
-
-  return if index == 10
 end
