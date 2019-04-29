@@ -14,7 +14,7 @@ DROP TABLE IF EXISTS dim_keywords;
 DROP TABLE IF EXISTS dim_keyword;
 
 CREATE TABLE dim_movie (
-  movie_id SERIAL PRIMARY KEY,
+  movie_id INTEGER PRIMARY KEY,
   movie_title VARCHAR UNIQUE,
   duration NUMERIC,
   color VARCHAR,
@@ -22,11 +22,11 @@ CREATE TABLE dim_movie (
 );
 
 CREATE TABLE dim_cast (
-  cast_id SERIAL PRIMARY KEY
+  cast_id INTEGER PRIMARY KEY
 );
 
 CREATE TABLE dim_actor (
-  actor_id SERIAL PRIMARY KEY,
+  actor_id INTEGER PRIMARY KEY,
   facebook_likes INTEGER,
   actor_name VARCHAR UNIQUE
 );
@@ -37,35 +37,35 @@ CREATE TABLE bridge_cast (
 );
 
 CREATE TABLE dim_year (
-  year_id SERIAL PRIMARY KEY,
+  year_id INTEGER PRIMARY KEY,
   year_date INTEGER
 );
 
 CREATE TABLE dim_country (
-  country_id SERIAL PRIMARY KEY,
+  country_id INTEGER PRIMARY KEY,
   country_name VARCHAR UNIQUE,
   language VARCHAR
 );
 
 CREATE TABLE dim_genre (
-  genre_id SERIAL PRIMARY KEY,
+  genre_id INTEGER PRIMARY KEY,
   genre VARCHAR UNIQUE
 );
 
 CREATE TABLE dim_director (
-  director_id SERIAL PRIMARY KEY,
+  director_id INTEGER PRIMARY KEY,
   director_name VARCHAR UNIQUE,
   director_facebook_likes INTEGER
 );
 
 CREATE TABLE dim_likes (
-  likes_id SERIAL PRIMARY KEY,
+  likes_id INTEGER PRIMARY KEY,
   movie_facebook_likes INTEGER,
   cast_total_likes INTEGER
 );
 
 CREATE TABLE dim_imdb (
-  imdb_id SERIAL PRIMARY KEY,
+  imdb_id INTEGER PRIMARY KEY,
   num_voted_users INTEGER,
   num_user_for_review INTEGER,
   num_critic_for_review INTEGER,
@@ -73,11 +73,11 @@ CREATE TABLE dim_imdb (
 );
 
 CREATE TABLE dim_keywords (
-  keywords_id SERIAL PRIMARY KEY
+  keywords_id INTEGER PRIMARY KEY
 );
 
 CREATE TABLE dim_keyword (
-  keyword_id SERIAL PRIMARY KEY,
+  keyword_id INTEGER PRIMARY KEY,
   keyword VARCHAR UNIQUE
 );
 
@@ -87,7 +87,7 @@ CREATE TABLE bridge_keywords (
 );
 
 CREATE TABLE fato (
-  fato_id SERIAL PRIMARY KEY,
+  fato_id INTEGER PRIMARY KEY,
   budget NUMERIC,
   gross NUMERIC,
   profit NUMERIC,

@@ -3,10 +3,18 @@ require 'securerandom'
 
 csv = CSV.parse(File.read('movies.csv'), headers: true)
 
+distinct_movie_titles = []
+distinct_actor_names = []
+distinct_country_names = []
+distinct_genres = []
+distinct_director_names = []
+distinct_keywords = []
+
+
 csv.each do |row|
   columns = row.to_s.split(',')
 
-  row_number = columns[0].to_i
+  index = columns[0].to_i
   color = columns[1]
   director_name = columns[2]
   num_critic_for_reviews = columns[3]
@@ -18,7 +26,7 @@ csv.each do |row|
   gross = columns[9]
   genre = columns[10].split('|').first
   actor_1_name = columns[11]
-  movie_title = columns[12]
+  movie_title = columns[12].gsub("'", "`")
   num_voted_users = columns[13]
   cast_total_facebook_likes = columns[14]
   actor_3_name = columns[15]
@@ -33,34 +41,80 @@ csv.each do |row|
   imdb_score = columns[24]
   movie_facebook_likes = columns[25].split(' ').first
 
-  puts "INSERT INTO dim_movie VALUES (#{row_number}, '#{movie_title}', #{duration}, '#{color}', '#{content_rating}');"
-  puts "INSERT INTO dim_cast VALUES (#{row_number});"
-  puts "INSERT INTO dim_actor VALUES (#{row_number}, #{actor_1_facebook_likes}, '#{actor_1_name}');"
-  puts "INSERT INTO dim_actor VALUES (#{row_number + 1}, #{actor_2_facebook_likes}, '#{actor_2_name}');"
-  puts "INSERT INTO dim_actor VALUES (#{row_number + 2}, #{actor_3_facebook_likes}, '#{actor_3_name}');"
-  
-  # bridge_cast
-  puts "INSERT INTO bridge_cast VALUES (#{row_number}, #{row_number});"
-  puts "INSERT INTO bridge_cast VALUES (#{row_number}, #{row_number + 1});"
-  puts "INSERT INTO bridge_cast VALUES (#{row_number}, #{row_number + 2});"
-
-  puts "INSERT INTO dim_year VALUES (#{row_number}, #{title_year});"
-  puts "INSERT INTO dim_country VALUES (#{row_number}, '#{country}', '#{language}');"
-  puts "INSERT INTO dim_genre VALUES (#{row_number}, '#{genre}');"
-  puts "INSERT INTO dim_director VALUES (#{row_number}, '#{director_name}', #{director_facebook_likes});"
-  puts "INSERT INTO dim_likes VALUES (#{row_number}, #{movie_facebook_likes}, #{cast_total_facebook_likes});"
-  puts "INSERT INTO dim_imdb VALUES (#{row_number}, #{num_voted_users}, #{num_user_for_reviews}, #{num_critic_for_reviews}, #{imdb_score});"
-  puts "INSERT INTO dim_keywords VALUES (#{row_number});"
-
-  # inserindo cada keyword separadamente
-  plot_keywords.each do |keyword|
-    random_id = SecureRandom.random_number(999999)
-    puts "INSERT INTO dim_keyword VALUES (#{random_id}, '#{keyword}');"
-    
-    # bridge_keywords
-    puts "INSERT INTO bridge_keywords VALUES (#{row_number}, #{random_id});"
+  movie = { id: index, content: movie_title }
+  unless distinct_movie_titles.select { |h| h[:content] == movie[:content] }.empty? || index == 0
+    puts "INSERT INTO dim_movie VALUES (#{index}, '#{movie_title}', #{duration}, '#{color}', '#{content_rating}');"
+    distinct_movie_titles.push(movie)
   end
 
-  # fato
-  puts "INSERT INTO fato VALUES (#{row_number}, #{budget}, #{gross}, #{gross.to_i - budget.to_i}, #{row_number}, #{row_number}, #{row_number}, #{row_number}, #{row_number}, #{row_number}, #{row_number}, #{row_number}, #{row_number});"
+  puts "INSERT INTO dim_cast VALUES (#{index});"
+  
+  actor_1 = { id: index, content: actor_1_name }
+  unless distinct_actor_names.select { |h| h[:content] == actor_1[:content] }.empty? || index == 0
+    puts "INSERT INTO dim_actor VALUES (#{index}, #{actor_1_facebook_likes}, '#{actor_1_name}');"
+    puts "INSERT INTO bridge_cast VALUES (#{index}, #{index});"
+    distinct_actor_names.push(actor_1)
+  end
+  
+  actor_2 = { id: index + 1, content: actor_2_name }
+  unless distinct_actor_names.select { |h| h[:content] == actor_2[:content] }.empty? || index == 0
+    puts "INSERT INTO dim_actor VALUES (#{index + 1}, #{actor_2_facebook_likes}, '#{actor_2_name}');"
+    puts "INSERT INTO bridge_cast VALUES (#{index}, #{index + 1});"
+    distinct_actor_names.push(actor_2)
+  end
+  
+  actor_3 = { id: index + 2, content: actor_3_name }
+  unless distinct_actor_names.select { |h| h[:content] == actor_3[:content] }.empty? || index == 0
+    puts "INSERT INTO dim_actor VALUES (#{index + 2}, #{actor_3_facebook_likes}, '#{actor_3_name}');"
+    puts "INSERT INTO bridge_cast VALUES (#{index}, #{index + 2});"
+    distinct_actor_names.push(actor_3)
+  end
+
+  puts "INSERT INTO dim_year VALUES (#{index}, #{title_year});"
+
+  country_hash = { id: index, content: country }
+  unless distinct_country_names.select { |h| h[:content] == country_hash[:content] }.empty? || index == 0
+    puts "INSERT INTO dim_country VALUES (#{index}, '#{country}', '#{language}');"
+    distinct_country_names.push(country_hash)
+  end
+
+  genre_hash = { id: index, content: genre }
+  unless distinct_genres.select { |h| h[:content] == genre_hash[:content] }.empty? || index == 0
+    puts "INSERT INTO dim_genre VALUES (#{index}, '#{genre}');"
+    distinct_genres.push(genre_hash)
+  end
+
+  director = { id: index, content: director_name }
+  unless distinct_director_names.select { |h| h[:content] == director[:content] }.empty? || index == 0
+    puts "INSERT INTO dim_director VALUES (#{index}, '#{director_name}', #{director_facebook_likes});"
+    distinct_director_names.push(director)
+  end
+
+  puts "INSERT INTO dim_likes VALUES (#{index}, #{movie_facebook_likes}, #{cast_total_facebook_likes});"
+  puts "INSERT INTO dim_imdb VALUES (#{index}, #{num_voted_users}, #{num_user_for_reviews}, #{num_critic_for_reviews}, #{imdb_score});"
+  puts "INSERT INTO dim_keywords VALUES (#{index});"
+
+  plot_keywords.each do |keyword|
+    keyword_hash = { id: index, content: keyword }
+
+    next if distinct_keywords.include?(keyword_hash)
+
+    random_id = SecureRandom.random_number(999999)
+
+    puts "INSERT INTO dim_keyword VALUES (#{random_id}, '#{keyword}');"
+    puts "INSERT INTO bridge_keywords VALUES (#{index}, #{random_id});"
+
+    distinct_keywords.push(keyword_hash)
+  end
+
+  unless index == 0
+    movie_id = movie[:id]
+    country_id = country_hash[:id]
+    genre_id = genre_hash[:id]
+    director_id = director[:id]
+  end
+
+  puts "INSERT INTO fato VALUES (#{index}, #{budget}, #{gross}, #{gross.to_i - budget.to_i}, #{movie_id}, #{index}, #{index}, #{country_id}, #{genre_id}, #{index}, #{index}, #{director_id}, #{index});"
+
+  return if index == 10
 end
