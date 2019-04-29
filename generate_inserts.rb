@@ -16,7 +16,7 @@ csv.each do |row|
 
   index = columns[0].to_i
   color = columns[1]
-  director_name = columns[2]
+  director_name = columns[2].gsub("'", "`")
   num_critic_for_reviews = columns[3]
   duration = columns[4]
   director_facebook_likes = columns[5]
@@ -30,7 +30,7 @@ csv.each do |row|
   num_voted_users = columns[13]
   cast_total_facebook_likes = columns[14]
   actor_3_name = columns[15].gsub("'", "`")
-  plot_keywords = columns[16].split('|')
+  plot_keywords = columns[16].split('|').each { |k| k.gsub!("'", "`") }
   num_user_for_reviews = columns[17]
   language = columns[18]
   country = columns[19]
@@ -73,19 +73,19 @@ csv.each do |row|
   puts "INSERT INTO dim_year VALUES (#{index}, #{title_year});"
 
   country_hash = { id: index, content: country }
-  if index == 0 || !distinct_country_names.select { |h| h[:content] == country_hash[:content] }.empty?
+  if index == 0 || distinct_country_names.select { |h| h[:content] == country_hash[:content] }.empty?
     puts "INSERT INTO dim_country VALUES (#{index}, '#{country}', '#{language}');"
     distinct_country_names.push(country_hash)
   end
 
   genre_hash = { id: index, content: genre }
-  if index == 0 || !distinct_genres.select { |h| h[:content] == genre_hash[:content] }.empty?
+  if index == 0 || distinct_genres.select { |h| h[:content] == genre_hash[:content] }.empty?
     puts "INSERT INTO dim_genre VALUES (#{index}, '#{genre}');"
     distinct_genres.push(genre_hash)
   end
 
   director = { id: index, content: director_name }
-  if index == 0 || !distinct_director_names.select { |h| h[:content] == director[:content] }.empty?
+  if index == 0 || distinct_director_names.select { |h| h[:content] == director[:content] }.empty?
     puts "INSERT INTO dim_director VALUES (#{index}, '#{director_name}', #{director_facebook_likes});"
     distinct_director_names.push(director)
   end
@@ -97,7 +97,7 @@ csv.each do |row|
   plot_keywords.each do |keyword|
     keyword_hash = { id: index, content: keyword }
 
-    next if !distinct_keywords.include?(keyword_hash)
+    next if distinct_keywords.include?(keyword_hash)
 
     random_id = SecureRandom.random_number(999999)
 
