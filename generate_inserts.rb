@@ -45,7 +45,7 @@ csv.each do |row|
 
   movie = { id: index, content: movie_title }
   if index == 0 || distinct_movie_titles.select { |h| h[:content] == movie[:content] }.empty?
-    puts "INSERT INTO dim_movie VALUES (#{index}, '#{movie_title}', #{duration}, '#{color}', '#{content_rating}');"
+    puts "INSERT INTO dim_movie VALUES (#{index}, '#{movie_title[0...-1]}', #{duration}, '#{color}', '#{content_rating}');"
     distinct_movie_titles.push(movie)
   end
 
