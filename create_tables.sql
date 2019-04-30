@@ -49,7 +49,7 @@ CREATE TABLE dim_country (
 
 CREATE TABLE dim_genre (
   genre_id INTEGER PRIMARY KEY,
-  genre VARCHAR UNIQUE
+  genre VARCHAR UNIQUE,
   subgenre VARCHAR UNIQUE
 );
 
