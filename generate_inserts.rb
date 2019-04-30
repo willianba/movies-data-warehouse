@@ -7,6 +7,7 @@ distinct_movie_titles = []
 distinct_actor_names = []
 distinct_country_names = []
 distinct_genres = []
+distinct_subgenres = []
 distinct_director_names = []
 distinct_keywords = []
 
@@ -25,6 +26,7 @@ csv.each do |row|
   actor_1_facebook_likes = columns[8]
   gross = columns[9]
   genre = columns[10].split('|').first
+  subgenre = columns[10].split('|')[1]
   actor_1_name = columns[11].gsub("'", "`")
   movie_title = columns[12].gsub("'", "`")
   num_voted_users = columns[13]
@@ -79,9 +81,12 @@ csv.each do |row|
   end
 
   genre_hash = { id: index, content: genre }
-  if index == 0 || distinct_genres.select { |h| h[:content] == genre_hash[:content] }.empty?
-    puts "INSERT INTO dim_genre VALUES (#{index}, '#{genre}');"
-    distinct_genres.push(genre_hash)
+  subgenre_hash = { id: index, content: subgenre }
+  if index == 0 || (distinct_genres.select { |h| h[:content] == genre_hash[:content] }.empty? &&
+  	distinct_subgenres.select { |h| h[:content] == subgenre_hash[:content] }.empty?)
+      puts "INSERT INTO dim_genre VALUES (#{index}, '#{genre}', '#{subgenre}');"
+      distinct_genres.push(genre_hash)
+      distinct_subgenres.push(subgenre_hash)
   end
 
   director = { id: index, content: director_name }
