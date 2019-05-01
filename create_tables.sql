@@ -49,8 +49,9 @@ CREATE TABLE dim_country (
 
 CREATE TABLE dim_genre (
   genre_id INTEGER PRIMARY KEY,
-  genre VARCHAR UNIQUE,
-  subgenre VARCHAR UNIQUE
+  genre VARCHAR,
+  subgenre VARCHAR,
+  UNIQUE (genre, subgenre)
 );
 
 CREATE TABLE dim_director (
