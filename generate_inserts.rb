@@ -1,5 +1,4 @@
 require 'csv'
-require 'securerandom'
 
 csv = CSV.parse(File.read('movies.csv'), headers: true)
 
@@ -12,6 +11,7 @@ distinct_director_names = []
 distinct_keywords = []
 
 index_actor = -1
+index_keyword = -1
 csv.each do |row|
   columns = row.to_s.split(',')
   index = columns[0].to_i
@@ -99,15 +99,10 @@ csv.each do |row|
   puts "INSERT INTO dim_keywords VALUES (#{index});"
 
   plot_keywords.each do |keyword|
-    keyword_hash = { id: index, content: keyword }
-
+    keyword_hash = { id: index_keyword += 1, content: keyword }
     next unless distinct_keywords.select { |k| k[:content] == keyword_hash[:content] }.empty?
-
-    random_id = SecureRandom.random_number(999999)
-
-    puts "INSERT INTO dim_keyword VALUES (#{random_id}, '#{keyword}');"
-    puts "INSERT INTO bridge_keywords VALUES (#{index}, #{random_id});"
-
+    puts "INSERT INTO dim_keyword VALUES (#{index_keyword}, '#{keyword}');"
+    puts "INSERT INTO bridge_keywords VALUES (#{index}, #{index_keyword});"
     distinct_keywords.push(keyword_hash)
   end
 
