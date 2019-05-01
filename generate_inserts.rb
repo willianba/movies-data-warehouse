@@ -1,5 +1,4 @@
 require 'csv'
-require 'securerandom'
 
 csv = CSV.parse(File.read('movies.csv'), headers: true)
 
@@ -11,10 +10,10 @@ distinct_subgenres = []
 distinct_director_names = []
 distinct_keywords = []
 
-
+index_actor = -1
+index_keyword = -1
 csv.each do |row|
   columns = row.to_s.split(',')
-
   index = columns[0].to_i
   color = columns[1]
   director_name = columns[2].gsub("'", "`")
@@ -51,24 +50,24 @@ csv.each do |row|
 
   puts "INSERT INTO dim_cast VALUES (#{index});"
   
-  actor_1 = { id: index, content: actor_1_name }
+  actor_1 = { id: index_actor += 1, content: actor_1_name }
   if index == 0 || distinct_actor_names.select { |h| h[:content] == actor_1[:content] }.empty?
-    puts "INSERT INTO dim_actor VALUES (#{index}, #{actor_1_facebook_likes}, '#{actor_1_name}');"
-    puts "INSERT INTO bridge_cast VALUES (#{index}, #{index});"
+    puts "INSERT INTO dim_actor VALUES (#{index_actor}, #{actor_1_facebook_likes}, '#{actor_1_name}');"
+    puts "INSERT INTO bridge_cast VALUES (#{index}, #{index_actor});"
     distinct_actor_names.push(actor_1)
   end
   
-  actor_2 = { id: index + 1, content: actor_2_name }
+  actor_2 = { id: index_actor += 1, content: actor_2_name }
   if index == 0 || distinct_actor_names.select { |h| h[:content] == actor_2[:content] }.empty?
-    puts "INSERT INTO dim_actor VALUES (#{index + 1}, #{actor_2_facebook_likes}, '#{actor_2_name}');"
-    puts "INSERT INTO bridge_cast VALUES (#{index}, #{index + 1});"
+    puts "INSERT INTO dim_actor VALUES (#{index_actor}, #{actor_2_facebook_likes}, '#{actor_2_name}');"
+    puts "INSERT INTO bridge_cast VALUES (#{index}, #{index_actor});"
     distinct_actor_names.push(actor_2)
   end
   
-  actor_3 = { id: index + 2, content: actor_3_name }
+  actor_3 = { id: index_actor += 1, content: actor_3_name }
   if index == 0 || distinct_actor_names.select { |h| h[:content] == actor_3[:content] }.empty?
-    puts "INSERT INTO dim_actor VALUES (#{index + 2}, #{actor_3_facebook_likes}, '#{actor_3_name}');"
-    puts "INSERT INTO bridge_cast VALUES (#{index}, #{index + 2});"
+    puts "INSERT INTO dim_actor VALUES (#{index_actor}, #{actor_3_facebook_likes}, '#{actor_3_name}');"
+    puts "INSERT INTO bridge_cast VALUES (#{index}, #{index_actor});"
     distinct_actor_names.push(actor_3)
   end
 
@@ -100,15 +99,10 @@ csv.each do |row|
   puts "INSERT INTO dim_keywords VALUES (#{index});"
 
   plot_keywords.each do |keyword|
-    keyword_hash = { id: index, content: keyword }
-
+    keyword_hash = { id: index_keyword += 1, content: keyword }
     next unless distinct_keywords.select { |k| k[:content] == keyword_hash[:content] }.empty?
-
-    random_id = SecureRandom.random_number(999999)
-
-    puts "INSERT INTO dim_keyword VALUES (#{random_id}, '#{keyword}');"
-    puts "INSERT INTO bridge_keywords VALUES (#{index}, #{random_id});"
-
+    puts "INSERT INTO dim_keyword VALUES (#{index_keyword}, '#{keyword}');"
+    puts "INSERT INTO bridge_keywords VALUES (#{index}, #{index_keyword});"
     distinct_keywords.push(keyword_hash)
   end
 
